@@ -99,6 +99,8 @@ class MultipleHistoricalData(object):
 
       consolidated_data = pd.concat([consolidated_data, data[self.attribute]], axis = 1)
       consolidated_data.rename({self.attribute : ticker+'_'+ self.attribute.lower()}, axis = 'columns', inplace = True)
+     
+    print("Completed Data extraction of: {}".format(self.tickers))
 
     return consolidated_data
 
