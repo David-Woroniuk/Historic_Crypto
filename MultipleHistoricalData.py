@@ -15,12 +15,12 @@ class MultipleHistoricalData(object):
    -------------------------------Arguments-------------------------------------------
    
     tickers: information on the security which the user would like to return (list).
-    attribute: the attribute which the user would like to return (Open, Close, High, Low, Volume, Market Cap etc.)
+    attribute: the attribute which the user would like to return (Open, Close, High, Low, Volume or Market_Cap) (str).
     start_date: a string in the format YYYY-MM-DD (str).
     end_date: a string in the format YYYY-MM-DD (str).
    -------------------------------Returns---------------------------------------------  
    
-    data: a Pandas DataFrame which contains requested cryptocurrency data.
+    consolidated_data: a Pandas DataFrame which contains requested cryptocurrency data.
   '''
 
   def __init__(self,
