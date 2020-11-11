@@ -1,5 +1,7 @@
 # Historic Crypto
 
+[![Downloads](https://pepy.tech/badge/historic-crypto)](https://pepy.tech/project/historic-crypto) [![Downloads](https://pepy.tech/badge/historic-crypto/month)](https://pepy.tech/project/historic-crypto)
+
 An open source Python library for scraping Historical Cryptocurrency data.
 
 This library scrapes [coinmarketcap.com][website] to collect historical Cryptocurrency data, returning a Pandas DataFrame. 
