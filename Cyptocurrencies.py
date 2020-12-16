@@ -58,7 +58,7 @@ class Cryptocurrencies(object):
       outcome = data[data['id'].str.contains(self.coin_search)]
       if outcome.empty == False:
         if self.verbose:
-          print("Found {} instances containing the term {}.".format(outcome.shape[0],self.coin_search))
+          print("Found {0} instances containing the term {1}.".format(outcome.shape[0],self.coin_search))
       else:
         if self.verbose:
           print("Unable to find specific search term, returning all available terms.")
