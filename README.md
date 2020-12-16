@@ -2,72 +2,91 @@
 
 [![Downloads](https://pepy.tech/badge/historic-crypto)](https://pepy.tech/project/historic-crypto) [![Downloads](https://pepy.tech/badge/historic-crypto/month)](https://pepy.tech/project/historic-crypto)
 
-An open source Python library for scraping Historical Cryptocurrency data.
+An open source Python library for the collection of Historical Cryptocurrency data.
 
-This library scrapes [coinmarketcap.com][website] to collect historical Cryptocurrency data, returning a Pandas DataFrame. 
-The HistoricalData class returns all attributes (Open, Close, High, Low, Volume, Market_Cap) of the selected cryptocurrency, whilst the MultipleHistoricalData accepts a list of cryptocurrencies and returns a single attribute of the corresponding cryptocurrencies.
+This library interacts with the [CoinBase Pro][website] API to:
+- List the Cyptocurrency Pairs available through the API.
+- Return Live Data from the API
+- Return historical data from the API in a Pandas DataFrame.
+ 
 
-## Installation
+The HistoricalData class returns all attributes (Open, Close, High, Low, Volume) of the selected Cryptocurrency, whilst the Cryptocurrencies class returns all Cryptocurrencies available through the API, with a 'coin_search' parameter if the user wishes to check if that Coin ID is available.
+
+# Installation
 
 From Python:
 ```python
 pip install Historic-Crypto
 from Historic_Crypto import HistoricalData
-from Historic_Crypto import MultipleHistoricalData
+from Historic_Crypto import Cryptocurrencies
+from Historic_Crypto import LiveCryptoData
 ```
 
-## Usage
+# Usage
+## Cryptocurrencies 
 
-If you are unsure of the correct 'ticker' to scrape:
+If you are unsure of the correct 'ticker' to search for:
 ```python
 pip install Historic-Crypto
-from Historic_Crypto import HistoricalData
-HistoricalData(start_date = '', ticker = '').find_all_tickers()
+from Historic_Crypto import Cryptocurrencies
+
+Cryptocurrencies().find_crypto_pairs()
 ```
-Returns a Pandas DataFrame containing the columns "Name" and "Symbol", which indicate the Name - Symbol pairs of available cryptocurrencies. The "Symbol" is required as the corresponding 'ticker' input argument of other class methods:
+Returns a Pandas DataFrame containing the columns "id" and "display_name" and "status", with the "id" column indicating the search term which should be queried by the other classes within the package. 
 
-```python
-pip install Historic-Crypto
-from Historic_Crypto import HistoricalData
-
-dataset = HistoricalData(start_date = '2013-06-06',
-                        end_date = '2015-01-01',
-                        ticker = 'BTC').retrieve_data()
-```
-
-Returns a Pandas DataFrame 'dataset', which contains the Open, Close, High, Low, Volume and Market Capitalisation of Bitcoin between 2013-06-06 and 2015-01-01, indexed by Date.
-
-```python
-pip install Historic-Crypto
-from Historic_Crypto import HistoricalData
-
-dataset = HistoricalData(start_date = '2013-06-06',
-                        ticker = 'BTC').retrieve_data()
-```
-
-Returns a Pandas DataFrame 'dataset', which contains the Open, Close, High, Low, Volume and Market Capitalisation of Bitcoin between 2013-06-06 and today, indexed by Date.
-
-```python
-pip install Historic-Crypto
-from Historic_Crypto import MultipleHistoricalData
-
-dataset = MultipleHistoricalData(tickers = ['BTC','ETH'], 
-                                attribute = 'Open', 
-                                start_date = '2015-01-01', 
-                                end_date = '2019-01-01').retrieve_data()
-```
-
-Returns a Pandas DataFrame 'dataset', which contains the Open 'attribute' of Bitcoin and Etherium between 2015-01-01 and today, indexed by Date. Please note that 'NaN' rows are present in the output, which can be subsequently processed.
-
-## Input Arguments
+Additionally, a number of optional arguments can be added:
 
 | Argument | Description |
 | ------ | --------- |
-| ticker | information for cryptocurrencies which the user would like to return (str). |
-| tickers | information for which cryptocurrencies the user would like to return (list). |
-| attribute | a string representing the attribute to be returned (From: 'Open','Close','High','Low','Volume','Market_Cap'  (str).  |
-| start_date | a string in the format YYYY-MM-DD (str). [optional] |
-| end_date | a string in the format YYYY-MM-DD (str). [optional] |
+| coin_search | search for a specific cryptocurrency string (str) **Default = None**. |
+| extended_output | displays either a condensed or extended output (Bool) **Default = False**.|
+| verbose | prints status messages (Bool) **Default = True**. |
+
+```python
+pip install Historic-Crypto
+from Historic_Crypto import Cryptocurrencies
+
+data = Cryptocurrencies(coin_search = 'XLM', extended_output=False).find_crypto_pairs()
+```
+
+## HistoricalData
+
+Once you know the ticker which you would like to search for, you can search for it using the HistoricalData class. 
+```python
+pip install Historic-Crypto
+from Historic_Crypto import HistoricalData
+
+new = HistoricalData('ETH-USD',300,'2020-06-01-00-00').retrieve_data()
+```
+The arguments for the class are listed below:
+| Argument | Description |
+| ------ | --------- |
+| ticker | supply the ticker information which you want to return (str). |
+| granularity | please supply a granularity in seconds (60, 300, 900, 3600, 21600, 86400) (int). |
+| start_date | a string in the format YYYY-MM-DD-HH-MM (str).  |
+| end_date | a string in the format YYYY-MM-DD-HH-MM (str). **Optional, Default: Now** |
+| verbose | printing during extraction. **Default: Now** |
 
 
-   [website]: <https://coinmarketcap.com/>
+## LiveCryptoData
+
+If you want to see the current Bid/Ask of a specific Cryptocurrency:
+
+```python
+pip install Historic-Crypto
+from Historic_Crypto import LiveCryptoData
+
+new =  LiveCryptoData('ATOM-USD').return_data()
+```
+
+Returns a Pandas DataFrame 'data', which contains the trade_id, price, size, bid, ask and volume of the previous transaction, indexed by timestamp.
+
+The arguments for the class are listed below:
+
+| Argument | Description |
+| ------ | --------- |
+| ticker | information for which the user would like to return (str). |
+| verbose | print progress during extraction (bool). **Default:True** |
+
+
+   [website]: <https://pro.coinbase.com/>
