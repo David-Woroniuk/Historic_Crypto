@@ -65,7 +65,7 @@ The arguments for the class are listed below:
 | granularity | please supply a granularity in seconds (60, 300, 900, 3600, 21600, 86400) (int). |
 | start_date | a string in the format YYYY-MM-DD-HH-MM (str).  |
 | end_date | a string in the format YYYY-MM-DD-HH-MM (str). **Optional, Default: Now** |
-| verbose | printing during extraction. **Default: Now** |
+| verbose | printing during extraction. **Default: True** |
 
 
 ## LiveCryptoData
