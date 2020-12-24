@@ -142,6 +142,7 @@ class HistoricalData(object):
       data.columns = ["time","low","high","open","close","volume"]
       data["time"] = pd.to_datetime(data["time"], unit='s')
       data.set_index("time", drop = True, inplace = True)
+      data.sort_index(inplace=True)
       return data
 
 
