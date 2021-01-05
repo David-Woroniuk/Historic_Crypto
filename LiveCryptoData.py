@@ -40,7 +40,7 @@ class LiveCryptoData(object):
     if self.verbose:
       self.pbar.update()
       self.pbar.set_description("Checking if ticker supplied is available on the CoinBase Pro API.")
-
+    
     ticker_response = requests.get("https://api.pro.coinbase.com/products")
     if ticker_response.status_code == 200 and self.verbose:
       self.pbar.update()
@@ -64,8 +64,8 @@ class LiveCryptoData(object):
       self._ticker_checker()
       self.pbar.update()
       self.pbar.set_description("Collecting data for '{}'".format(self.ticker))
-
-    response = requests.get("https://api.pro.coinbase.com/products/BTC-USD/ticker")
+    
+    response = requests.get("https://api.pro.coinbase.com/products/{}/ticker").format(self.ticker)
     if response.status_code == 200:
       response_dictionary= json.loads(response.text)
       data = pd.DataFrame.from_dict(response_dictionary, orient='index').T
