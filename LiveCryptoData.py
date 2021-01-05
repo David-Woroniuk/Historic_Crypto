@@ -65,7 +65,7 @@ class LiveCryptoData(object):
       self.pbar.update()
       self.pbar.set_description("Collecting data for '{}'".format(self.ticker))
     
-    response = requests.get("https://api.pro.coinbase.com/products/{}/ticker").format(self.ticker)
+    response = requests.get(("https://api.pro.coinbase.com/products/{}/ticker").format(self.ticker))
     if response.status_code == 200:
       response_dictionary= json.loads(response.text)
       data = pd.DataFrame.from_dict(response_dictionary, orient='index').T
