@@ -30,8 +30,8 @@ class LiveCryptoData(object):
     if isinstance(ticker, str) is False:
       raise TypeError("The 'ticker' argument must be a string object.")
 
+    self.verbose = verbose
     if verbose:
-      self.verbose = verbose
       self.pbar = pbar
     self.ticker = ticker
 
