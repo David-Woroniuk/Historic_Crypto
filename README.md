@@ -17,9 +17,6 @@ The HistoricalData class returns all attributes (Open, Close, High, Low, Volume)
 From Python:
 ```python
 pip install Historic-Crypto
-from Historic_Crypto import HistoricalData
-from Historic_Crypto import Cryptocurrencies
-from Historic_Crypto import LiveCryptoData
 ```
 
 # Usage
@@ -27,7 +24,6 @@ from Historic_Crypto import LiveCryptoData
 
 If you are unsure of the correct 'ticker' to search for:
 ```python
-pip install Historic-Crypto
 from Historic_Crypto import Cryptocurrencies
 
 Cryptocurrencies().find_crypto_pairs()
@@ -43,7 +39,6 @@ Additionally, a number of optional arguments can be added:
 | verbose | prints status messages (Bool) **Default = True**. |
 
 ```python
-pip install Historic-Crypto
 from Historic_Crypto import Cryptocurrencies
 
 data = Cryptocurrencies(coin_search = 'XLM', extended_output=False).find_crypto_pairs()
@@ -53,7 +48,6 @@ data = Cryptocurrencies(coin_search = 'XLM', extended_output=False).find_crypto_
 
 Once you know the ticker which you would like to search for, you can search for it using the HistoricalData class. 
 ```python
-pip install Historic-Crypto
 from Historic_Crypto import HistoricalData
 
 new = HistoricalData('ETH-USD',300,'2020-06-01-00-00').retrieve_data()
@@ -73,7 +67,6 @@ The arguments for the class are listed below:
 If you want to see the current Bid/Ask of a specific Cryptocurrency:
 
 ```python
-pip install Historic-Crypto
 from Historic_Crypto import LiveCryptoData
 
 new =  LiveCryptoData('ATOM-USD').return_data()
