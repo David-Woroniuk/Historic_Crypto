@@ -70,6 +70,7 @@ class Cryptocurrencies(object):
                 'base_increment','min_market_funds','max_market_funds','margin_enabled','post_only',
                 'limit_only','cancel_only','trading_disabled','status_message'],axis = 1, inplace = True)
       return data
+    return data
 
     
 data = Cryptocurrencies(coin_search = 'XLM', extended_output=False).find_crypto_pairs()
