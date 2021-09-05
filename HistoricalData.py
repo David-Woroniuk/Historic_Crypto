@@ -7,12 +7,6 @@ from random import randint
 import pandas as pd
 import sys
 from datetime import datetime, timedelta
-# from pandas import json_normalize
-# from requests.exceptions import ConnectionError, Timeout, TooManyRedirects
-# from urllib.error import HTTPError
-
-#     PLEASE NOTE THAT HISTORICAL RATE DATA MAY BE INCOMPLETE AS NO DATA IS PUBLISHED
-#     FOR INTERVALS WHERE THERE ARE NO TICKS.
 
 
 class HistoricalData(object):
@@ -20,6 +14,9 @@ class HistoricalData(object):
     This class provides methods for gathering historical price data of a specified
     Cryptocurrency between user specified time periods. The class utilises the CoinBase Pro
     API to extract historical data, providing a performant method of data extraction.
+    
+    Please Note that Historical Rate Data may be incomplete as data is not published when no 
+    ticks are available (Coinbase Pro API Documentation).
 
     :param: ticker: a singular Cryptocurrency ticker. (str)
     :param: granularity: the price data frequency in seconds, one of: 60, 300, 900, 3600, 21600, 86400. (int)
@@ -72,7 +69,7 @@ class HistoricalData(object):
         tkr_response = requests.get("https://api.pro.coinbase.com/products")
         if tkr_response.status_code in [200, 201, 202, 203, 204]:
             if self.verbose:
-                print('Connected to the CoinBase Pro API...')
+                print('Connected to the CoinBase Pro API.')
             response_data = pd.json_normalize(json.loads(tkr_response.text))
             ticker_list = response_data["id"].tolist()
 
@@ -110,14 +107,13 @@ class HistoricalData(object):
     def retrieve_data(self):
         """This function returns the data."""
         if self.verbose:
-            print("Formatting Dates...")
+            print("Formatting Dates.")
 
         self._ticker_checker()
         self.start_date_string = self._date_cleaner(self.start_date)
         self.end_date_string = self._date_cleaner(self.end_date)
         start = datetime.strptime(self.start_date, "%Y-%m-%d-%H-%M")
         end = datetime.strptime(self.end_date, "%Y-%m-%d-%H-%M")
-
         request_volume = abs((end - start).total_seconds()) / self.granularity
 
         if request_volume <= 300:
@@ -127,62 +123,84 @@ class HistoricalData(object):
                     self.start_date_string,
                     self.end_date_string,
                     self.granularity))
-            if response.status_code == 200 and self.verbose:
-                print('Data Extracted from API...')
-            elif response.status_code == 404 and self.verbose:
-                raise TypeError("Error status code: 404.")
-
-            response_lists = json.loads(response.text)
-            data = pd.DataFrame(response_lists)
-            data.columns = ["time", "low", "high", "open", "close", "volume"]
-            data["time"] = pd.to_datetime(data["time"], unit='s')
-            data.set_index("time", drop=True, inplace=True)
-            data.sort_index(inplace=True)
-            return data
-
+            if response.status_code in [200, 201, 202, 203, 204]:
+                if self.verbose:
+                    print('Retrieved Data from Coinbase Pro API.')
+                data = pd.DataFrame(json.loads(response.text))
+                data.columns = ["time", "low", "high", "open", "close", "volume"]
+                data["time"] = pd.to_datetime(data["time"], unit='s')
+                data = data[data['time'].between(start, end)]
+                data.set_index("time", drop=True, inplace=True)
+                data.sort_index(ascending=True, inplace=True)
+                data.drop_duplicates(subset=None, keep='first', inplace=True)
+                if self.verbose:
+                    print('Returning data.')
+                return data
+            elif response.status_code in [400, 401, 404]:
+                if self.verbose:
+                    print("Status Code: {}, malformed request to the CoinBase Pro API.".format(response.status_code))
+                sys.exit()
+            elif response.status_code in [403, 500, 501]:
+                if self.verbose:
+                    print("Status Code: {}, could not connect to the CoinBase Pro API.".format(response.status_code))
+                sys.exit()
+            else:
+                if self.verbose:
+                    print("Status Code: {}, error in connecting to the CoinBase Pro API.".format(response.status_code))
+                sys.exit()
         else:
             # The api limit:
-            requests_per_message = 300
+            max_per_mssg = 300
             data = pd.DataFrame()
-
-            for i in range(int(request_volume / requests_per_message) + 1):
-                provisional_start = start + timedelta(0, i * (self.granularity * requests_per_message))
+            for i in range(int(request_volume / max_per_mssg) + 1):
+                provisional_start = start + timedelta(0, i * (self.granularity * max_per_mssg))
                 provisional_start = self._date_cleaner(provisional_start)
-                provisional_end = start + timedelta(0, (i + 1) * (self.granularity * requests_per_message))
+                provisional_end = start + timedelta(0, (i + 1) * (self.granularity * max_per_mssg))
                 provisional_end = self._date_cleaner(provisional_end)
+
+                print("Provisional Start: {}".format(provisional_start))
+                print("Provisional End: {}".format(provisional_end))
                 response = requests.get(
                     "https://api.pro.coinbase.com/products/{0}/candles?start={1}&end={2}&granularity={3}".format(
                         self.ticker,
                         provisional_start,
                         provisional_end,
                         self.granularity))
-                if response.status_code == 200 and self.verbose:
-                    print(
-                        'Data for chunk {0} of {1} extracted'.format(i, int(request_volume / requests_per_message)))
-                elif response.status_code == 404 and self.verbose:
-                    raise TypeError("Data for chunk {0} received error status code: 404.".format(i))
 
-                if response.status_code == 200:
-                    response_lists = json.loads(response.text)
-                    dataset = pd.DataFrame(response_lists)
+                if response.status_code in [200, 201, 202, 203, 204]:
+                    if self.verbose:
+                        print('Data for chunk {} of {} extracted'.format(i+1,
+                                                                         (int(request_volume / max_per_mssg) + 1)))
+                    dataset = pd.DataFrame(json.loads(response.text))
                     if not dataset.empty:
                         data = data.append(dataset)
-                        time.sleep(randint(0, 3))
+                        time.sleep(randint(0, 2))
                     else:
+                        print("""CoinBase Pro API did not have available data for '{}' beginning at {}.  
+                        Trying a later date:'{}'""".format(self.ticker,
+                                                           self.start_date,
+                                                           provisional_start))
+                        time.sleep(randint(0, 2))
+                elif response.status_code in [400, 401, 404]:
+                    if self.verbose:
                         print(
-                            """CoinBase Pro API did not have any data available for '{0}' beginning at {1}. 
-                            Trying a later date:'{2}'""".format(
-                                self.ticker,
-                                self.start_date,
-                                provisional_start))
+                            "Status Code: {}, malformed request to the CoinBase Pro API.".format(response.status_code))
+                    sys.exit()
+                elif response.status_code in [403, 500, 501]:
+                    if self.verbose:
+                        print(
+                            "Status Code: {}, could not connect to the CoinBase Pro API.".format(response.status_code))
+                    sys.exit()
                 else:
                     if self.verbose:
-                        print("Error on chunk {}".format(i))
-
+                        print("Status Code: {}, error in connecting to the CoinBase Pro API.".format(
+                            response.status_code))
+                    sys.exit()
             data.columns = ["time", "low", "high", "open", "close", "volume"]
             data["time"] = pd.to_datetime(data["time"], unit='s')
+            data = data[data['time'].between(start, end)]
             data.set_index("time", drop=True, inplace=True)
-            data.sort_index(inplace=True)
+            data.sort_index(ascending=True, inplace=True)
             data.drop_duplicates(subset=None, keep='first', inplace=True)
             return data
 
