@@ -51,7 +51,7 @@ class Cryptocurrencies(object):
             sys.exit()
 
         if self.coin_search:
-            outcome = response_data[response_data['id'].str.contains(self.coin_search)]
+            outcome = response_data[response_data['id'].str.contains(self.coin_search, regex=True)]
             if not outcome.empty:
                 if self.verbose:
                     print("Found {0} instances containing the term {1}.".format(outcome.shape[0], self.coin_search))
@@ -73,5 +73,5 @@ class Cryptocurrencies(object):
             return outcome
 
 
-data = Cryptocurrencies(coin_search='DOGE', extended_output=False).find_crypto_pairs()
+data = Cryptocurrencies(coin_search='^BTC-USD$', extended_output=False).find_crypto_pairs()
 print(data)
