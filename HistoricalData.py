@@ -203,8 +203,3 @@ class HistoricalData(object):
             data.sort_index(ascending=True, inplace=True)
             data.drop_duplicates(subset=None, keep='first', inplace=True)
             return data
-
-
-new = HistoricalData('BTC-USD', 3600, '2021-06-01-00-00', '2021-07-01-00-00').retrieve_data()
-print(new.head())
-print(new.tail())

@@ -89,7 +89,3 @@ class LiveCryptoData(object):
             if self.verbose:
                 print("Status Code: {}, error in connecting to the CoinBase Pro API.".format(response.status_code))
             sys.exit()
-
-
-new = LiveCryptoData('BTC-USD').return_data()
-print(new)
