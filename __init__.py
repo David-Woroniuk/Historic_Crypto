@@ -5,5 +5,6 @@ from requests.exceptions import ConnectionError, Timeout, TooManyRedirects
 from urllib.error import HTTPError
 
 
-
-from .historical_crypto import HistoricalData
+from .Cryptocurrencies import Cryptocurrencies
+from .HistoricalData import HistoricalData
+from .LiveCryptoData import LiveCryptoData
