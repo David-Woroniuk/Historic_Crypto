@@ -111,5 +111,5 @@ class Cryptocurrencies(object):
             return outcome
 
 
-data = Cryptocurrencies(coin_search="DOGE", extended_output=False).find_crypto_pairs()
-print(data)
+# data = Cryptocurrencies(coin_search="DOGE", extended_output=False).find_crypto_pairs()
+# print(data)

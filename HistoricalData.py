@@ -263,9 +263,9 @@ class HistoricalData(object):
             return data
 
 
-symbols = ["BTC-USD", "ETH-USD", "DOGE-USD", "XTZ-USD"]
+# symbols = ["BTC-USD", "ETH-USD", "DOGE-USD", "XTZ-USD"]
 
-data = [
-    HistoricalData(symbol, 3600, "2021-06-01-00-00", "2021-07-01-00-00").retrieve_data()
-    for symbol in tqdm(symbols)
-]
+# data = [
+#     HistoricalData(symbol, 3600, "2021-06-01-00-00", "2021-07-01-00-00").retrieve_data()
+#     for symbol in tqdm(symbols)
+# ]
