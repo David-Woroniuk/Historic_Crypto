@@ -1,7 +1,5 @@
 # Historic Crypto
 
-[![Downloads](https://pepy.tech/badge/historic-crypto)](https://pepy.tech/project/historic-crypto) [![Downloads](https://pepy.tech/badge/historic-crypto/month)](https://pepy.tech/project/historic-crypto)
-
 An open source Python library for the collection of Historical Cryptocurrency data.
 
 This library interacts with the [CoinBase Pro][website] API to:
