@@ -1,0 +1,18 @@
+# Ignore all files and directories starting with a dot
+.*
+
+# But do not ignore .gitignore itself
+!.gitignore
+
+# Do not ignore specific files or directories you want to keep track of, if any
+# For example, to not ignore a hypothetical .keepme file, uncomment the next line:
+#!.keepme
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# Distribution / packaging
+*.egg-info/
+dist/
+build/

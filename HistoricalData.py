@@ -116,93 +116,65 @@ class HistoricalData(object):
         end = datetime.strptime(self.end_date, "%Y-%m-%d-%H-%M")
         request_volume = abs((end - start).total_seconds()) / self.granularity
 
+        data_chunks = []  # Initialize an empty list to store DataFrame chunks
+
         if request_volume <= 300:
-            response = requests.get(
-                "https://api.pro.coinbase.com/products/{0}/candles?start={1}&end={2}&granularity={3}".format(
-                    self.ticker,
-                    self.start_date_string,
-                    self.end_date_string,
-                    self.granularity))
-            if response.status_code in [200, 201, 202, 203, 204]:
-                if self.verbose:
-                    print('Retrieved Data from Coinbase Pro API.')
-                data = pd.DataFrame(json.loads(response.text))
-                data.columns = ["time", "low", "high", "open", "close", "volume"]
-                data["time"] = pd.to_datetime(data["time"], unit='s')
-                data = data[data['time'].between(start, end)]
-                data.set_index("time", drop=True, inplace=True)
-                data.sort_index(ascending=True, inplace=True)
-                data.drop_duplicates(subset=None, keep='first', inplace=True)
-                if self.verbose:
-                    print('Returning data.')
-                return data
-            elif response.status_code in [400, 401, 404]:
-                if self.verbose:
-                    print("Status Code: {}, malformed request to the CoinBase Pro API.".format(response.status_code))
-                sys.exit()
-            elif response.status_code in [403, 500, 501]:
-                if self.verbose:
-                    print("Status Code: {}, could not connect to the CoinBase Pro API.".format(response.status_code))
-                sys.exit()
-            else:
-                if self.verbose:
-                    print("Status Code: {}, error in connecting to the CoinBase Pro API.".format(response.status_code))
-                sys.exit()
+            response = self._make_request(self.ticker, self.start_date_string, self.end_date_string, self.granularity)
+            if response:
+                data = pd.DataFrame(response)
+                if not data.empty:
+                    data_chunks.append(data)
         else:
-            # The api limit:
+            # Adjust the loop to handle data fetching in chunks properly
             max_per_mssg = 300
-            data = pd.DataFrame()
             for i in range(int(request_volume / max_per_mssg) + 1):
-                provisional_start = start + timedelta(0, i * (self.granularity * max_per_mssg))
-                provisional_start = self._date_cleaner(provisional_start)
-                provisional_end = start + timedelta(0, (i + 1) * (self.granularity * max_per_mssg))
-                provisional_end = self._date_cleaner(provisional_end)
+                provisional_start = start + timedelta(seconds=i * self.granularity * max_per_mssg)
+                provisional_end = start + timedelta(seconds=(i + 1) * self.granularity * max_per_mssg)
+                provisional_start_string = self._date_cleaner(provisional_start)
+                provisional_end_string = self._date_cleaner(provisional_end)
 
-                print("Provisional Start: {}".format(provisional_start))
-                print("Provisional End: {}".format(provisional_end))
-                response = requests.get(
-                    "https://api.pro.coinbase.com/products/{0}/candles?start={1}&end={2}&granularity={3}".format(
-                        self.ticker,
-                        provisional_start,
-                        provisional_end,
-                        self.granularity))
+                if self.verbose:
+                    print(f"Provisional Start: {provisional_start_string}")
+                    print(f"Provisional End: {provisional_end_string}")
 
-                if response.status_code in [200, 201, 202, 203, 204]:
-                    if self.verbose:
-                        print('Data for chunk {} of {} extracted'.format(i+1,
-                                                                         (int(request_volume / max_per_mssg) + 1)))
-                    dataset = pd.DataFrame(json.loads(response.text))
+                response = self._make_request(self.ticker, provisional_start_string, provisional_end_string, self.granularity)
+                if response:
+                    dataset = pd.DataFrame(response)
                     if not dataset.empty:
-                        data = data.append(dataset)
+                        data_chunks.append(dataset)
                         time.sleep(randint(0, 2))
-                    else:
-                        print("""CoinBase Pro API did not have available data for '{}' beginning at {}.  
-                        Trying a later date:'{}'""".format(self.ticker,
-                                                           self.start_date,
-                                                           provisional_start))
-                        time.sleep(randint(0, 2))
-                elif response.status_code in [400, 401, 404]:
-                    if self.verbose:
-                        print(
-                            "Status Code: {}, malformed request to the CoinBase Pro API.".format(response.status_code))
-                    sys.exit()
-                elif response.status_code in [403, 500, 501]:
-                    if self.verbose:
-                        print(
-                            "Status Code: {}, could not connect to the CoinBase Pro API.".format(response.status_code))
-                    sys.exit()
-                else:
-                    if self.verbose:
-                        print("Status Code: {}, error in connecting to the CoinBase Pro API.".format(
-                            response.status_code))
-                    sys.exit()
+
+        # After the loop, concatenate all DataFrame chunks in the list into a single DataFrame
+        if data_chunks:
+            data = pd.concat(data_chunks)
+        else:
+            data = pd.DataFrame()  # Create an empty DataFrame if no data was fetched
+
+        if not data.empty:
             data.columns = ["time", "low", "high", "open", "close", "volume"]
             data["time"] = pd.to_datetime(data["time"], unit='s')
             data = data[data['time'].between(start, end)]
             data.set_index("time", drop=True, inplace=True)
             data.sort_index(ascending=True, inplace=True)
             data.drop_duplicates(subset=None, keep='first', inplace=True)
-            return data
+
+        if self.verbose:
+            print('Returning data.')
+        return data
+
+    def _make_request(self, ticker, start_date_string, end_date_string, granularity):
+        """Helper function to make API request and return response."""
+        response = requests.get(
+            f"https://api.pro.coinbase.com/products/{ticker}/candles?start={start_date_string}&end={end_date_string}&granularity={granularity}")
+        if response.status_code in [200, 201, 202, 203, 204]:
+            if self.verbose:
+                print('Retrieved Data from Coinbase Pro API.')
+            return json.loads(response.text)
+        elif response.status_code in [400, 401, 404, 403, 500, 501]:
+            if self.verbose:
+                print(f"Status Code: {response.status_code}, issue with request to the CoinBase Pro API.")
+            return None
+
 
 
 new = HistoricalData('BTC-USD', 3600, '2021-06-01-00-00', '2021-07-01-00-00').retrieve_data()
