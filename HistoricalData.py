@@ -173,7 +173,7 @@ class HistoricalData(object):
                                                                          (int(request_volume / max_per_mssg) + 1)))
                     dataset = pd.DataFrame(json.loads(response.text))
                     if not dataset.empty:
-                        data = data.append(dataset)
+                        data = data._append(dataset)
                         time.sleep(randint(0, 2))
                     else:
                         print("""CoinBase Pro API did not have available data for '{}' beginning at {}.  
