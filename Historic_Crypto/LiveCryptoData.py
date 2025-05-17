@@ -59,7 +59,7 @@ class LiveCryptoData(object):
             if self.verbose:
                 print("Ticker '{}' found at the CoinBase Pro API, continuing to extraction.".format(self.ticker))
         else:
-            raise ValueError("""Ticker: '{}' not available through CoinBase Pro API. Please use the Cryptocurrencies 
+            raise ValueError("""Ticker: '{}' not available through CoinBase Pro API. Please use the Cryptocurrencies
             class to identify the correct ticker.""".format(self.ticker))
 
     def return_data(self):
@@ -89,7 +89,3 @@ class LiveCryptoData(object):
             if self.verbose:
                 print("Status Code: {}, error in connecting to the CoinBase Pro API.".format(response.status_code))
             sys.exit()
-
-
-new = LiveCryptoData('BTC-USD').return_data()
-print(new)

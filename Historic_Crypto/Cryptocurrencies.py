@@ -32,7 +32,7 @@ class Cryptocurrencies(object):
 
     def find_crypto_pairs(self):
         """This function returns all cryptocurrency pairs available at the CoinBase Pro API."""
-        response = requests.get("https://api.pro.coinbase.com/products")
+        response = requests.get("https://api.exchange.coinbase.com/products")
         if response.status_code in [200, 201, 202, 203, 204]:
             if self.verbose:
                 print("Connected to the CoinBase Pro API.")
@@ -71,7 +71,3 @@ class Cryptocurrencies(object):
                 print("Extended Output is {}, returning reduced dataset.".format(self.extended_output))
             outcome = outcome[['id', 'display_name', 'fx_stablecoin', 'max_slippage_percentage', 'status']]
             return outcome
-
-
-data = Cryptocurrencies(coin_search='DOGE', extended_output=False).find_crypto_pairs()
-print(data)
